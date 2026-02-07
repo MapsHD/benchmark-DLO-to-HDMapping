@@ -1,84 +1,81 @@
-# DLO converter
+# DLO to HDMapping simlified instruction
 
-## Example Dataset: 
+## Step 1 (prepare data)
+Download the dataset `reg-1.bag` by clicking [link](https://cloud.cylab.be/public.php/dav/files/7PgyjbM2CBcakN5/reg-1.bag) (it is part of [Bunker DVI Dataset](https://charleshamesse.github.io/bunker-dvi-dataset)) and convert with [tool](https://github.com/MapsHD/livox_bag_aggregate) to 'reg-1.bag-pc.bag'.
 
-Download the dataset from [Bunker DVI Dataset](https://charleshamesse.github.io/bunker-dvi-dataset/)  
+File 'reg-1.bag-pc.bag' is an input for further calculations.
+It should be located in '~/hdmapping-benchmark/data'.
 
-## Intended use 
 
-This small toolset allows to integrate SLAM solution provided by [dlo](https://github.com/vectr-ucla/direct_lidar_odometry) with [HDMapping](https://github.com/MapsHD/HDMapping).
-This repository contains ROS 1 workspace that :
-  - submodule to tested revision of dlo
-  - a converter that listens to topics advertised from odometry node and save data in format compatible with HDMapping.
-
-## Dependencies
-
+## Step 2 (prepare docker)
 ```shell
-sudo apt install -y nlohmann-json3-dev
+mkdir -p ~/hdmapping-benchmark
+cd ~/hdmapping-benchmark
+git clone https://github.com/MapsHD/benchmark-DLO-to-HDMapping.git --recursive
+cd benchmark-DLO-to-HDMapping
+git checkout Bunker-DVI-Dataset-reg-1
+docker build -t dlo_noetic .
 ```
 
-## Building
-
-Clone the repo
+## Step 3 (run docker, file 'reg-1.bag-pc.bag' should be in '~/hdmapping-benchmark/data')
 ```shell
-mkdir -p /test_ws/src
-cd /test_ws/src
-git clone https://github.com/marcinmatecki/DLO-to-hdmapping.git --recursive
-cd ..
-catkin_make
+cd ~/hdmapping-benchmark/benchmark-DLO-to-HDMapping
+chmod +x docker_session_run-ros1-dlo.sh 
+cd ~/hdmapping-benchmark/data
+~/hdmapping-benchmark/benchmark-DLO-to-HDMapping/docker_session_run-ros1-dlo.sh reg-1.bag-pc.bag .
 ```
 
-## Usage - data SLAM:
+## Step 4 (Open and visualize data)
+Expected data should appear in ~/hdmapping-benchmark/data/output_hdmapping-dlo
+Use tool [multi_view_tls_registration_step_2](https://github.com/MapsHD/HDMapping) to open session.json from ~/hdmapping-benchmark/data/output_hdmapping-dlo.
 
-Prepare recorded bag with estimated odometry:
+You should see following data
 
-In first terminal record bag:
-```shell
-rosbag record /robot/dlo/odom_node/odom /robot/dlo/odom_node/pointcloud/keyframe
-```
+lio_initial_poses.reg
 
-and start odometry:
-```shell 
-cd /test_ws/
-source ./devel/setup.sh # adjust to used shell
-roslaunch direct_lidar_odometry dlo.launch pointcloud_topic:=<pc_topic_name> imu_topic:=<imu_topic_name>
-rosbag play <path_to_rosbag>
-```
+poses.reg
 
-## Usage - conversion:
+scan_lio_0.laz
 
-```shell
-cd /test_ws/
-source ./devel/setup.sh # adjust to used shell
-rosrun dlo-to-hdmapping listener <recorded_bag> <output_dir>
-```
+scan_lio_1.laz
 
-## Record the bag file:
+scan_lio_2.laz
 
-```shell
-rosbag record /robot/dlo/odom_node/odom /robot/dlo/odom_node/pointcloud/keyframe -O {your_directory_for_the_recorded_bag}
-```
+scan_lio_3.laz
 
-## DLO Launch:
+scan_lio_4.laz
 
-```shell
-cd /test_ws/
-source ./install/setup.sh # adjust to used shell
-roslaunch direct_lidar_odometry dlo.launch pointcloud_topic:=/pp_points/synced2rgb imu_topic:=/imu/data
-rosbag play <path_to_rosbag>
-```
+scan_lio_5.laz
 
-## During the record (if you want to stop recording earlier) / after finishing the bag:
+scan_lio_6.laz
 
-```shell
-In the terminal where the ros record is, interrupt the recording by CTRL+C
-Do it also in ros launch terminal by CTRL+C.
-```
+scan_lio_7.laz
 
-## Usage - Conversion (ROS bag to HDMapping, after recording stops):
+scan_lio_8.laz
 
-```shell
-cd /test_ws/
-source ./install/setup.sh # adjust to used shell
-rosrun dlo-to-hdmapping listener <recorded_bag> <output_dir>
-```
+scan_lio_9.laz
+
+session.json
+
+trajectory_lio_0.csv
+
+trajectory_lio_1.csv
+
+trajectory_lio_2.csv
+
+trajectory_lio_3.csv
+
+trajectory_lio_4.csv
+
+trajectory_lio_5.csv
+
+trajectory_lio_6.csv
+
+trajectory_lio_7.csv
+
+trajectory_lio_8.csv
+
+trajectory_lio_9.csv
+
+## Contact email
+januszbedkowski@gmail.com
