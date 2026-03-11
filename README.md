@@ -1,89 +1,47 @@
-# [DLO](https://github.com/vectr-ucla/direct_lidar_odometry) converter to [HDMapping](https://github.com/MapsHD/HDMapping)
+# DLO to HDMapping simplified instruction
 
-## Hint
+## Step 1 (prepare data)
 
-Please change branch to [Bunker-DVI-Dataset-reg-1](https://github.com/MapsHD/benchmark-DLO-to-HDMapping/tree/Bunker-DVI-Dataset-reg-1) for quick experiment.  
+Download the dataset `kitti_seq00_ros1.bag` by clicking [link](https://huggingface.co/datasets/kubchud/kitti_to_ros/resolve/main/kitti_seq00_ros1.bag) (it is part of [kitti_seq](https://github.com/Jakubach/kitti_to_ros)).
 
+### Extract the dataset
 
-## Example Dataset: 
+File `kitti_seq00_ros1.bag` is an input for further calculations.
+It should be located in `~/hdmapping-benchmark/data`.  
 
-Download the dataset from [Bunker DVI Dataset](https://charleshamesse.github.io/bunker-dvi-dataset/)  
-
-## Intended use 
-
-This small toolset allows to integrate SLAM solution provided by [dlo](https://github.com/vectr-ucla/direct_lidar_odometry) with [HDMapping](https://github.com/MapsHD/HDMapping).
-This repository contains ROS 1 workspace that :
-  - submodule to tested revision of dlo
-  - a converter that listens to topics advertised from odometry node and save data in format compatible with HDMapping.
-
-## Dependencies
-
+## Step 2 (prepare docker)
 ```shell
-sudo apt install -y nlohmann-json3-dev
+mkdir -p ~/hdmapping-benchmark
+cd ~/hdmapping-benchmark
+git clone https://github.com/MapsHD/benchmark-DLO-to-HDMapping.git --recursive
+cd benchmark-DLO-to-HDMapping
+git checkout kitti
+docker build -t dlo_noetic .
 ```
 
-## Building
-
-Clone the repo
+## Step 3 (run docker, file 'kitti_seq00_ros1.bag' should be in '~/hdmapping-benchmark/data')
 ```shell
-mkdir -p /test_ws/src
-cd /test_ws/src
-git clone https://github.com/marcinmatecki/DLO-to-hdmapping.git --recursive
-cd ..
-catkin_make
+cd ~/hdmapping-benchmark/benchmark-DLO-to-HDMapping
+chmod +x docker_session_run-ros1-dlo.sh 
+cd ~/hdmapping-benchmark/data
+~/hdmapping-benchmark/benchmark-DLO-to-HDMapping/docker_session_run-ros1-dlo.sh kitti_seq00_ros1.bag .
 ```
 
-## Usage - data SLAM:
+## Step 4 (Open and visualize data)
+Expected data should appear in ~/hdmapping-benchmark/data/output_hdmapping-dlo
+Use tool [multi_view_tls_registration_step_2](https://github.com/MapsHD/HDMapping) to open session.json from ~/hdmapping-benchmark/data/output_hdmapping-dlo.
 
-Prepare recorded bag with estimated odometry:
+You should see following data in '~/hdmapping-benchmark/data/output_hdmapping-dlo'
 
-In first terminal record bag:
-```shell
-rosbag record /robot/dlo/odom_node/odom /robot/dlo/odom_node/pointcloud/keyframe
-```
+lio_initial_poses.reg
 
-and start odometry:
-```shell 
-cd /test_ws/
-source ./devel/setup.sh # adjust to used shell
-roslaunch direct_lidar_odometry dlo.launch pointcloud_topic:=<pc_topic_name> imu_topic:=<imu_topic_name>
-rosbag play <path_to_rosbag>
-```
+poses.reg
 
-## Usage - conversion:
+scan_lio_*.laz
 
-```shell
-cd /test_ws/
-source ./devel/setup.sh # adjust to used shell
-rosrun dlo-to-hdmapping listener <recorded_bag> <output_dir>
-```
+session.json
 
-## Record the bag file:
+trajectory_lio_*.csv
 
-```shell
-rosbag record /robot/dlo/odom_node/odom /robot/dlo/odom_node/pointcloud/keyframe -O {your_directory_for_the_recorded_bag}
-```
-
-## DLO Launch:
-
-```shell
-cd /test_ws/
-source ./install/setup.sh # adjust to used shell
-roslaunch direct_lidar_odometry dlo.launch pointcloud_topic:=/pp_points/synced2rgb imu_topic:=/imu/data
-rosbag play <path_to_rosbag>
-```
-
-## During the record (if you want to stop recording earlier) / after finishing the bag:
-
-```shell
-In the terminal where the ros record is, interrupt the recording by CTRL+C
-Do it also in ros launch terminal by CTRL+C.
-```
-
-## Usage - Conversion (ROS bag to HDMapping, after recording stops):
-
-```shell
-cd /test_ws/
-source ./install/setup.sh # adjust to used shell
-rosrun dlo-to-hdmapping listener <recorded_bag> <output_dir>
-```
+## Contact email
+januszbedkowski@gmail.com
