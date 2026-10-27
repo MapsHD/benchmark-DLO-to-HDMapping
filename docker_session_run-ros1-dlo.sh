@@ -9,8 +9,8 @@ BAG_OUTPUT_CONTAINER='/ros_ws/recordings'
 RECORDED_BAG_NAME="recorded-dlo.bag"
 HDMAPPING_OUT_NAME="output_hdmapping"
 
-POINTCLOUD_TOPIC=/livox/pointcloud
-IMU_TOPIC=/livox/imu
+POINTCLOUD_TOPIC=/lidar/pointcloud
+IMU_TOPIC=/lidar/imu
 
 usage() {
   echo "Usage:"
@@ -61,6 +61,7 @@ echo "Output dir: $BAG_OUTPUT_HOST"
 xhost +local:docker >/dev/null
 
 docker run -it --rm \
+  -e DISABLE_ROS1_EOL_WARNINGS=1 \
   --network host \
   -e DISPLAY=$DISPLAY \
   -e ROS_HOME=/tmp/.ros \
@@ -120,6 +121,7 @@ pkill -f ros || true
   '
 
 docker run -it --rm \
+  -e DISABLE_ROS1_EOL_WARNINGS=1 \
   --network host \
   -e DISPLAY="$DISPLAY" \
   -e ROS_HOME=/tmp/.ros \
